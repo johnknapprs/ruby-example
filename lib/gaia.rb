@@ -1,38 +1,96 @@
 require 'rubysdk'
 
 class Main
-    Job1_handler = lambda do |args|
-        args.each do |arg|
-            STDERR.puts "Key: #{arg.key}; Value: #{arg.value}"
-        end
+
+    CreateUser = lambda do |args|
+        STDERR.puts "CreateUser has been started!"
+        # lets sleep to simulate that we do something.
+        sleep(2.0)
+        STDERR.puts "CreateUser has been finished!"
     end
-    Job2_handler = lambda do |args|
-        STDERR.puts "Job2 has been executed!"
+
+    MigrateDB = lambda do |args|
+        STDERR.puts "MigrateDB has been started!"
+        # lets sleep to simulate that we do something.
+        sleep(2.0)
+        STDERR.puts "MigrateDB has been finished!"
     end
-    Job3_handler = lambda do |args|
-        STDERR.puts "Job3 has been executed!"
+
+    CreateNamespace = lambda do |args|
+        STDERR.puts "CreateNamespace has been started!"
+        # lets sleep to simulate that we do something.
+        sleep(2.0)
+        STDERR.puts "CreateNamespace has been finished!"
+    end
+
+    CreateDeployment = lambda do |args|
+        STDERR.puts "CreateDeployment has been started!"
+        # lets sleep to simulate that we do something.
+        sleep(2.0)
+        STDERR.puts "CreateDeployment has been finished!"
+    end
+
+    CreateService = lambda do |args|
+        STDERR.puts "CreateService has been started!"
+        # lets sleep to simulate that we do something.
+        sleep(2.0)
+        STDERR.puts "CreateService has been finished!"
+    end
+
+    CreateIngress = lambda do |args|
+        STDERR.puts "CreateIngress has been started!"
+        # lets sleep to simulate that we do something.
+        sleep(2.0)
+        STDERR.puts "CreateIngress has been finished!"
+    end
+
+    Cleanup = lambda do |args|
+        STDERR.puts "Cleanup has been started!"
+        # lets sleep to simulate that we do something.
+        sleep(2.0)
+        STDERR.puts "Cleanup has been finished!"
     end
 
     def self.main
-        args = []
-        args.push Interface::Argument.new(desc: "Schema name for new database:",
-                                          type: Interface::TextFieldInput,
-                                          key: "username")
-        args.push Interface::Argument.new(type: Interface::VaultInput,
-                                          key: "dbpassword")
-        job1 = Interface::Job.new(title: "job1", 
-                                  handler: Job1_handler,
-                                  args: args)
-        job2 = Interface::Job.new(title: "job2", 
-                                  handler: Job2_handler,
-                                  dependson: ["job1"])
-        job3 = Interface::Job.new(title: "job3",
-                                  handler: Job3_handler,
-                                  dependson: ["job2"])
+        createuser = Interface::Job.new(title: "Create DB User", 
+                                        desc: "Create DB User with least privileged permissions.",
+                                        handler: CreateUser)
+
+        migratedb = Interface::Job.new(title: "DB Migration", 
+                                       handler: MigrateDB,
+                                       desc: "Imports newest test data dump and migrates to newest version.",
+                                       dependson: ["Create DB User"])
+
+        createnamespace = Interface::Job.new(title: "Create K8S Namespace",
+                                             handler: CreateNamespace,
+                                             desc: "Create a new Kubernetes namespace for the new test environment.",
+                                             dependson: ["DB Migration"])
+
+        createdeployment = Interface::Job.new(title: "Create K8S Deployment",
+                                              handler: CreateDeployment,
+                                              desc: "Create a new Kubernetes deployment for the new test environment.",
+                                              dependson: ["Create K8S Namespace"])
+
+        createservice = Interface::Job.new(title: "Create K8S Service",
+                                           handler: CreateService,
+                                           desc: "Create a new Kubernetes service for the new test environment.",
+                                           dependson: ["Create K8S Namespace"])
+
+        createingress = Interface::Job.new(title: "Create K8S Ingress",
+                                           handler: CreateIngress,
+                                           desc: "Create a new Kubernetes ingress for the new test environment.",
+                                           dependson: ["Create K8S Namespace"])
+
+        cleanup = Interface::Job.new(title: "Clean up",
+                                     handler: Cleanup,
+                                     desc: "Removes all temporary files.",
+                                     dependson: ["Create K8S Deployment", "Create K8S Service", "Create K8S Ingress"])
+
         begin
-            RubySDK.Serve([job1, job2, job3])
+            RubySDK.Serve([createuser, migratedb, createnamespace, createdeployment, createservice, createingress, cleanup])
         rescue => e
             puts "Error occured: #{e}"
+            exit(false)
         end
     end
 end
