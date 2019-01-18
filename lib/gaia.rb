@@ -1,34 +1,23 @@
 require 'rubysdk'
 
 class Main
+    AwesomeJob = lambda do |args|
+        STDERR.puts "This output will be streamed back to gaia and will be displayed in the pipeline logs."
 
-    PrintParam = lambda do |args|
-        args.each do |arg|
-            STDERR.puts "Key: #{arg.key}; Value: #{arg.value}"
-        end
+        # An error occurred? Raise an exception and gaia will fail the pipeline.
+        # raise "Oh gosh! Something went wrong!"
     end
 
     def self.main
-        args = []
-        args.push Interface::Argument.new(desc: "Username for the database schema:",
-                                          # textfield displays a text field in the UI.
-                                          # You can also use "TextAreaInput", "BooleanInput",
-                                          # or "VaultInput".
-                                          type: Interface::TextFieldInput,
-                                          key: "username")
-        args.push Interface::Argument.new(type: Interface::TextAreaInput,
-                                          key: "usernamedesc")
-        printparam = Interface::Job.new(title: "Print Parameters",
-                                        handler: PrintParam,
-                                        desc: "This job prints out all given params.",
-                                        args: args)
+        awesomejob = Interface::Job.new(title: "Awesome Job",
+                                        handler: AwesomeJob,
+                                        desc: "This job does something awesome.")
 
         begin
-            RubySDK.Serve([printparam])
+            RubySDK.Serve([awesomejob])
         rescue => e
             puts "Error occured: #{e}"
             exit(false)
         end
     end
 end
-
