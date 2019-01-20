@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = 'gaia'
+  s.name        = '${NAME}'
   s.version     = '0.0.1'
   s.date        = '2019-01-10'
   s.licenses    = ['Apache-2.0']
